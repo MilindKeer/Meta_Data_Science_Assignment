@@ -253,11 +253,11 @@ def get_reported_posts_yesterday(mysql_connection):
         if mysql_connection.is_connected():
             query = '''
                 SELECT 
-                COALESCE(trim(lower(extra)), 'blank_reason') AS report_reason, COUNT(*) AS post_count
+                COALESCE(NULLIF(TRIM(LOWER(extra)), ''), 'blank_reason') AS report_reason, COUNT(*) AS post_count
                 FROM user_actions
                 WHERE TRIM(LOWER(action)) = 'report' 
-                AND ds = CURDATE() - INTERVAL 1 DAY
-                GROUP BY extra;
+                AND ds = CURDATE() - INTERVAL 1 DAY 
+                GROUP BY COALESCE(NULLIF(TRIM(LOWER(extra)), ''), 'blank_reason')
             '''
             cursor = mysql_connection.cursor()
             cursor.execute(query)
