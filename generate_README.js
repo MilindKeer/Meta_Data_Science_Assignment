@@ -76,7 +76,7 @@ Please refer/review the following two SQL files:
 
   **Assumptions:** <br>
   -- A post is considered spam if its post_id exists in the reviewer_removals table. This indicates that the post has been manually reviewed and removed, marking it as spam. <br>
-  -- E.g. The post may be reported as a spam in the 'user_actions' table but it will be considered spam only and only after manual review.ALTER <br>
+  -- E.g. The post may be reported as a spam in the 'user_actions' table but it will be considered spam only and only after manual review. <br>
   -- Once a post is added to the 'reviewer_removals' table, it will be considered spam permanently, regardless of the date. <br>
   -- The formula used to calculate the spam percentage of daily content is as follows: <br>
   -- Spam % = (Number of distinct posts identified as spam on a given day (ds) / Total number of distinct posts viewed on the same day (ds)) × 100
@@ -106,6 +106,34 @@ Please refer/review the following two SQL files:
       ua.ds DESC; 
 
 \`\`\`
+
+## question_2_solution_alternate.sql
+## Alternate approach to calculate the percentage:
+This alternative approach to calculating the percentage of daily content viewed by users on Facebook can actually 
+be considered spam based on a different interpretation.
+
+**Assumptions:** <br>
+-- A post is considered spam if its post_id exists in the reviewer_removals table. This indicates that the post has been manually reviewed and removed, marking it as spam.<br>
+-- E.g. The post may be reported as a spam in the 'user_actions' table but it will be considered spam only and only after manual review. <br>
+
+-- The alternate formula used to calculate the spam percentage of daily content is as follows:
+-- Spam % = (Total number of spam posts in the 'user_actions' table on a given day (ds) / Total number of posts viewed on the same day (ds)) × 100
+
+
+\`\`\`
+with spam_flag as (
+SELECT ua.ds,
+       CASE WHEN rr.post_id IS NULL THEN 0 ELSE 1 END AS spam_flag
+FROM user_actions ua LEFT JOIN reviewer_removals rr ON ua.post_id = rr.post_id 
+WHERE lower(action) = 'view'
+)
+select ds, 100* sum(spam_flag)/count(*) as spam_percentage
+from spam_flag
+group by ds
+ORDER BY ds DESC
+;
+\`\`\`
+
 
 
 # Second Solution - Python Solution
@@ -335,6 +363,48 @@ def get_spam_percent(mysql_connection):
             # mysql_connection.close()
             # print("MySQL connection closed.")
 
+def get_spam_percent_alternate(mysql_connection):
+    try:
+        if mysql_connection.is_connected():
+            query = '''
+                with spam_flag as (
+                SELECT ua.ds,
+                    CASE WHEN rr.post_id IS NULL THEN 0 ELSE 1 END AS spam_flag
+                FROM user_actions ua LEFT JOIN reviewer_removals rr ON ua.post_id = rr.post_id 
+                WHERE lower(action) = 'view'
+                )
+                select ds, 100* sum(spam_flag)/count(*) as spam_percentage
+                from spam_flag
+                group by ds
+                ORDER BY ds DESC
+                ;
+            '''
+            cursor = mysql_connection.cursor()
+            cursor.execute(query)
+
+            results = cursor.fetchall()
+
+            print('*' * 100)
+            print("Question 2: What percent of daily content that users view on Facebook is actually Spam?")
+            print("\nAlternate approach:")
+            print("\nPercent of daily content that users view on Facebook is actually Spam:\n")    
+
+            for result in results:
+                date = result[0]
+                spam_percentage = result[1]
+                print(f"Date: {date}, Spam Percentage: {spam_percentage:.2f}%")
+
+            print('*' * 100)
+        return True
+    except Error as e:
+        print(f"Error: {e}")
+
+    finally:
+        if mysql_connection.is_connected():
+            cursor.close()
+            # mysql_connection.close()
+            # print("MySQL connection closed.")
+
  
 if __name__ == "__main__":
     
@@ -348,6 +418,10 @@ if __name__ == "__main__":
     result = get_spam_percent(mysql_connection)
     if not result:
         print(f"get_spam_percent function failed")
+
+    result = get_spam_percent_alternate(mysql_connection)
+    if not result:
+        print(f"get_spam_percent_alternate function failed")    
 
     mysql_connection.close()
 \`\`\`

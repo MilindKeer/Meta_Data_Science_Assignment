@@ -91,7 +91,51 @@ def get_spam_percent(mysql_connection):
             # mysql_connection.close()
             # print("MySQL connection closed.")
 
- 
+def get_spam_percent_alternate(mysql_connection):
+    try:
+        if mysql_connection.is_connected():
+            query = '''
+                with spam_flag as (
+                SELECT ua.ds,
+                    CASE WHEN rr.post_id IS NULL THEN 0 ELSE 1 END AS spam_flag
+                FROM user_actions ua LEFT JOIN reviewer_removals rr ON ua.post_id = rr.post_id 
+                WHERE lower(action) = 'view'
+                )
+                select ds, 100* sum(spam_flag)/count(*) as spam_percentage
+                from spam_flag
+                group by ds
+                ORDER BY ds DESC
+                ;
+            '''
+            cursor = mysql_connection.cursor()
+            cursor.execute(query)
+
+            results = cursor.fetchall()
+
+            print('*' * 100)
+            print("Question 2: What percent of daily content that users view on Facebook is actually Spam?")
+            print("\nAlternate approach:")
+            print("\nPercent of daily content that users view on Facebook is actually Spam:\n")    
+
+            for result in results:
+                date = result[0]
+                spam_percentage = result[1]
+                print(f"Date: {date}, Spam Percentage: {spam_percentage:.2f}%")
+
+            print('*' * 100)
+        return True
+    except Error as e:
+        print(f"Error: {e}")
+
+    finally:
+        if mysql_connection.is_connected():
+            cursor.close()
+            # mysql_connection.close()
+            # print("MySQL connection closed.")
+
+
+
+
 if __name__ == "__main__":
     
     # a config file or utility function can be written for this but currently hardcoded.
@@ -104,5 +148,9 @@ if __name__ == "__main__":
     result = get_spam_percent(mysql_connection)
     if not result:
         print(f"get_spam_percent function failed")
+
+    result = get_spam_percent_alternate(mysql_connection)
+    if not result:
+        print(f"get_spam_percent_alternate function failed")
 
     mysql_connection.close()
