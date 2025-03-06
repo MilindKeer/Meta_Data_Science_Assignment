@@ -11,9 +11,11 @@
 -- The COALESCE(trim(lower(extra)), 'blank_reason') part ensures that if the extra field is NULL (i.e., no report reason provided), we substitute it with a default value 'blank_reason' to make sure all reports are counted, even those without a clear reason.
 
 SELECT 
-COALESCE(trim(lower(extra)), 'blank_reason') AS report_reason, COUNT(*) AS post_count
+COALESCE(NULLIF(TRIM(LOWER(extra)), ''), 'blank_reason') AS report_reason, COUNT(*) AS post_count
 FROM user_actions
 WHERE TRIM(LOWER(action)) = 'report' 
 AND ds = CURDATE() - INTERVAL 1 DAY 
-GROUP BY extra;
+GROUP BY COALESCE(NULLIF(TRIM(LOWER(extra)), ''), 'blank_reason')
+;
+
 

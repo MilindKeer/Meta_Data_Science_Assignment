@@ -3,6 +3,7 @@
 # Also, The script can be made more modular and reusable, but it has been kept straightforward 
 # by hardcoding values such as DB credentials, CSV file path, and name, etc.
 
+
 import mysql.connector
 from mysql.connector import Error
 import pandas as pd

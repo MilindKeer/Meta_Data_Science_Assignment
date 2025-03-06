@@ -7,6 +7,7 @@
 -- Spam % = (Number of distinct posts identified as spam on a given day (ds) / Total number of distinct posts viewed on the same day (ds)) × 100
 -- Note - I am counting/considering post_ids only with Action = 'view'
 
+
 SELECT
     ua.ds AS date,
     COUNT(DISTINCT ua.post_id) AS total_views_count,
