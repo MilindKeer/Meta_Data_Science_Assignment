@@ -3,10 +3,10 @@ const fs = require('fs');
 // Markdown content to write to the README.md file
 const markdownContent = `
 # Meta Data science pre-interview test 
-
+---
 ### First Table: We have a data set for all user actions that a user can take on a post. Some of the actions require a bit more information (such as reaction type, comment text, or report reason), so there is an extra column to store that information.
 
-Table: user_actions
+Table: user_actions <br>
 Sample data:
 
 \`\`\`
@@ -22,13 +22,9 @@ ts,ds,user_id,post_id,action,extra
 
 Q1: How many posts were reported yesterday for each report reason?
 
----
-
 ### Second Table: reviewer_removals
-
 The reviewer_removals table contains data about whether a manual reviewer decided to take down a post. A row exists in this table only if the post was removed.
-
-Table: reviewer_removals
+Table: reviewer_removals <br>
 Sample data:
 
 \`\`\`
@@ -36,7 +32,6 @@ ds,reviewer_id,post_id
 '2018-07-01',3894729384729078,329482048384792
 '2018-07-01',8477594743909585,388573002873499
 \`\`\`
-
 
 Q2: What percent of daily content that users view on Facebook is actually Spam?
 
@@ -53,18 +48,17 @@ Please refer/review the following two SQL files:
 
 ## question_1_solution.sql
 
+  Q1: How many posts were reported yesterday for each report reason?
 
-  -- Q1: How many posts were reported yesterday for each report reason?
-
-  -- Assumptions:
-  -- Data Format in extra:
-  -- The content in the extra field may contain extra spaces, case differences, and potentially NULL values.
-  -- If the extra field is NULL, it should be replaced with a default value 'blank_reason' while calculating stats, this is to get readable stats e.g. report action may or may not have extra string.
+  **Assumptions:** <br>
+  -- Data Format in extra: <br>
+  -- The content in the extra field may contain extra spaces, case differences, and potentially NULL values.<br>
+  -- If the extra field is NULL, it should be replaced with a default value 'blank_reason' while calculating stats, this is to get readable stats e.g. report action may or may not have extra string.<br>
   -- Data type of DS is given String but assumtion is it will be always in YYYY-mm-dd format which MySQL can read as a date format implicitly 
 
-  -- Key points:
-  -- trim(lower(extra)): I am trimming the whitespace and converting the content to lowercase to handle inconsistencies in the way users input the report reasons (e.g., handling case variations like "Nudity" vs. "nudity" and ignoring any leading or trailing spaces).
-  -- The COALESCE(trim(lower(extra)), 'blank_reason') part ensures that if the extra field is NULL (i.e., no report reason provided), we substitute it with a default value 'blank_reason' to make sure all reports are counted, even those without a clear reason.
+  **Key points:** <br>
+  -- trim(lower(extra)): I am trimming the whitespace and converting the content to lowercase to handle inconsistencies in the way users input the report reasons (e.g., handling case variations like "Nudity" vs. "nudity" and ignoring any leading or trailing spaces). <br>
+  -- The COALESCE(trim(lower(extra)), 'blank_reason') part ensures that if the extra field is NULL (i.e., no report reason provided), we substitute it with a default value 'blank_reason' to make sure all reports are counted, even those without a clear reason. 
 
 \`\`\`
   SELECT 
@@ -78,13 +72,13 @@ Please refer/review the following two SQL files:
 \`\`\`
 
 ## question_2_solution.sql 
-  -- Q2: What percent of daily content that users view on Facebook is actually Spam?
+  Q2: What percent of daily content that users view on Facebook is actually Spam? <br>
 
-  -- Assumptions:
-  -- A post is considered spam if its post_id exists in the reviewer_removals table. This indicates that the post has been manually reviewed and removed, marking it as spam.
-  -- E.g. The post may be reported as a spam in the 'user_actions' table but it will be considered spam only and only after manual review.ALTER
-  -- Once a post is added to the 'reviewer_removals' table, it will be considered spam permanently, regardless of the date.
-  -- The formula used to calculate the spam percentage of daily content is as follows:
+  **Assumptions:** <br>
+  -- A post is considered spam if its post_id exists in the reviewer_removals table. This indicates that the post has been manually reviewed and removed, marking it as spam. <br>
+  -- E.g. The post may be reported as a spam in the 'user_actions' table but it will be considered spam only and only after manual review.ALTER <br>
+  -- Once a post is added to the 'reviewer_removals' table, it will be considered spam permanently, regardless of the date. <br>
+  -- The formula used to calculate the spam percentage of daily content is as follows: <br>
   -- Spam % = (Number of distinct posts identified as spam on a given day (ds) / Total number of distinct posts viewed on the same day (ds)) × 100
   -- Note - I am counting/considering post_ids only with Action = 'view'
 
